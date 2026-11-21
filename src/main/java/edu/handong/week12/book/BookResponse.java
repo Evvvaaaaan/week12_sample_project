@@ -7,6 +7,6 @@ public record BookResponse(
         int price
 ) {
     public static BookResponse from(Book book) {
-        return new BookResponse(book.getId(), book.getTitle(), book.getTitle(), book.getPrice());
+        return new BookResponse(book.getId(), book.getTitle(), book.getAuthor(), book.getPrice());
     }
 }
