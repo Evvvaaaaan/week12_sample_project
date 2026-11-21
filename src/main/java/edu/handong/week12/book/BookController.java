@@ -1,5 +1,6 @@
 package edu.handong.week12.book;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookResponse> create(@RequestBody BookRequest request) {
+    public ResponseEntity<BookResponse> create(@Valid @RequestBody BookRequest request) {
         BookResponse saved = service.create(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -36,7 +37,7 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookResponse> update(@PathVariable Long id, @RequestBody BookRequest request) {
+    public ResponseEntity<BookResponse> update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         BookResponse updated = service.update(id, request);
         return ResponseEntity.ok(updated);
     }

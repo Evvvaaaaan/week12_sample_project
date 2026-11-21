@@ -16,9 +16,10 @@ public class BookService {
   } // TODO STEP 6: Pagination/Sorting
 
   public BookResponse findById(Long id) {
-    Book book = repository.findById(id).orElseThrow();
+    Book book = repository.findById(id)
+            .orElseThrow(() -> new BookNotFoundException(id));
     return BookResponse.from(book);
-  } // TODO STEP 5: 404
+  }
 
   public BookResponse create(BookRequest request) {
     Book book = new Book(
@@ -28,10 +29,11 @@ public class BookService {
     );
     Book savedBook = repository.save(book);
     return BookResponse.from(savedBook);
-  } // TODO STEP 3: DTO
+  }
 
   public BookResponse update(Long id, BookRequest request) {
-    Book book = repository.findById(id).orElseThrow();
+    Book book = repository.findById(id)
+            .orElseThrow(() -> new BookNotFoundException(id));
 
     book.update(
             request.title(),
@@ -44,7 +46,9 @@ public class BookService {
   }
 
   public void delete(Long id) {
+    if (!repository.existsById(id)) {
+      throw new BookNotFoundException(id);
+    }
     repository.deleteById(id);
   }
-  // TODO: 404 if absent
 }
