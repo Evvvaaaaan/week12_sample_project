@@ -1,7 +1,8 @@
 package edu.handong.week12.book;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 @Service
 public class BookService {
@@ -11,11 +12,13 @@ public class BookService {
     this.repository = repository;
   }
 
-  public List<BookResponse> findAll() {
-    return repository.findAll().stream().map(BookResponse::from).toList();
-  } // TODO STEP 6: Pagination/Sorting
+  public Page<BookResponse> findAll(Pageable pageable) {
+    return repository.findAll(pageable)
+            .map(BookResponse::from);
+  }
 
   public BookResponse findById(Long id) {
+    // TODO(직접 작성): 줄 단위 설명 주석 — Repository 조회, Optional, 404 예외 발생
     Book book = repository.findById(id)
             .orElseThrow(() -> new BookNotFoundException(id));
     return BookResponse.from(book);
