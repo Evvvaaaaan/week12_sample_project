@@ -201,6 +201,18 @@
 
 ![06_swagger](results/06_swagger.png)
 
+- results/07_update.png: 기존 CRUD 확인 - 수정 (PUT, 200)
+
+![07_update](results/07_update.png)
+
+- results/08_delete.png: 기존 CRUD 확인 - 삭제 (DELETE, 204)
+
+![08_delete](results/08_delete.png)
+
+- results/09_get_by_id.png: 기존 CRUD 확인 - 단건 조회 (GET, 200)
+
+![09_get_by_id](results/09_get_by_id.png)
+
 ### Render 배포
 
 - Render는 Java 런타임을 기본 제공하지 않으므로 Dockerfile로 배포
