@@ -242,23 +242,17 @@
 
 ### 새롭게 배운 내용 3가지
 
-- Entity를 요청에 직접 쓰면 위험하다: 원본에서 POST 본문에 "id": 1을 넣자 기존 도서가 덮어써지는 것을 확인하고, Request DTO에서 서버 생성 필드를 빼는 이유를 이해함
-- 예외 처리는 한 곳에 모을 수 있다: Service는 CustomException만 던지고 @RestControllerAdvice가 400/404/500 응답을 ExceptionResponse 형식으로 통일해 Controller에 try-catch가 필요 없어짐
-- 페이징과 문서화가 거의 자동이다: Pageable 파라미터 하나로 page/size/sort 처리와 쿼리가 만들어지고, springdoc 의존성과 어노테이션만으로 Swagger UI에서 API를 테스트할 수 있음
+- DTO 분리: Entity를 요청에 그대로 받으면 "id": 1만 넣어도 기존 도서가 덮어써짐. Request DTO에서 id를 빼야 하는 이유를 직접 확인함
+- 공통 예외 처리: Service는 CustomException만 던지고, @RestControllerAdvice가 400/404/500 응답을 같은 형식으로 만들어 줌
+- 페이징과 문서화: Pageable 하나로 page/size/sort가 처리되고, springdoc 어노테이션만으로 Swagger UI에서 API를 테스트할 수 있음
 
 ### 어려웠던 점과 해결 방법
 
-- 응답의 author가 제목으로 나오는 문제: Lab 1에서 BookResponse.from()에 getAuthor() 대신 getTitle()을 넣은 실수로, 응답 필드를 검사하는 BookControllerTest를 작성하며 발견해 수정
-- Page 반환 시 WARN 로그: Spring Data 3.3부터 PageImpl을 그대로 직렬화하면 구조가 안정적이지 않다는 경고가 나와, @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)를 설정해 응답을 content와 page로 고정하고 경고를 없앰
-- 없는 정렬 필드로 500 오류: sort=foo,desc 요청 시 PropertyReferenceException이 처리되지 않아 500이 나와, @ExceptionHandler로 잡아 400 INVALID_PARAMETER로 응답하도록 수정
-- Render 배포 준비: 멀티 스테이지 Dockerfile을 작성하고 PORT 환경 변수를 server.port: ${PORT:8080}으로 받도록 설정, DB 비밀번호는 환경 변수로만 전달
+- 응답의 author에 제목이 나옴: BookResponse에서 getTitle()을 잘못 넣은 실수로, 응답 필드를 검사하는 테스트를 작성하며 발견해 수정
+- 없는 정렬 필드(sort=foo)로 500 오류: PropertyReferenceException을 @ExceptionHandler로 잡아 400으로 응답하도록 수정
+- 배포 후 POST만 500 오류: 외부 DB에 9주차 books 테이블의 category(NOT NULL) 컬럼이 남아 있던 것이 원인. 로그와 SHOW CREATE TABLE로 확인하고 컬럼을 삭제해 해결
 
 ### AI 활용 내용 및 느낀 점
 
-- 활용 내용: AI 코딩 도구(Claude Code)를 코드 검증과 관련 코드 학습에 활용
-  - 작성한 DTO, Validation, 예외 처리, 페이징 코드에 실수가 없는지 검토 요청
-  - @Valid, @RestControllerAdvice, Pageable, springdoc 어노테이션처럼 처음 접하는 코드의 내부 동작을 질문하며 학습
-  - 설명받은 내용은 테스트(11개 통과)와 MariaDB 연결 실행으로 직접 확인
-- 느낀 점: 코드 검토와 설명 덕분에 각 어노테이션과 계층이 왜 필요한지 빠르게 이해함
-  - 설명만 믿지 않고 원본 Sample을 실행해 비교한 덕분에 기존 데이터 덮어쓰기, 없는 ID 삭제 시 200 응답 같은 예상과 다른 동작을 직접 확인함
-  - AI의 답변도 실행과 테스트로 검증하는 과정이 중요하다고 느낌
+- 활용: Claude Code로 작성한 코드 검토, 처음 보는 어노테이션(@Valid, Pageable, springdoc)의 동작 질문, 배포 오류 원인 분석
+- 느낀 점: 설명 덕분에 각 계층과 어노테이션이 왜 필요한지 빨리 이해했지만, 답변을 그대로 믿기보다 테스트와 실제 실행으로 확인하는 과정이 중요하다고 느낌
