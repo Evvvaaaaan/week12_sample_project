@@ -1,9 +1,9 @@
 # Week 12 – Book REST API 고도화 및 API 문서화
 
 - GitHub Repository: https://github.com/2026-2-WebService/assign12-c01-22300404
-- Render Deployment: https://<서비스이름>.onrender.com (배포 후 기재)
-  - API: https://<서비스이름>.onrender.com/api/books
-  - Swagger UI: https://<서비스이름>.onrender.com/swagger-ui.html
+- Render Deployment: https://week12-sample-project-7vz9.onrender.com
+  - API: https://week12-sample-project-7vz9.onrender.com/api/books
+  - Swagger UI: https://week12-sample-project-7vz9.onrender.com/swagger-ui.html
 
 ## 1. Project Information
 
@@ -178,11 +178,28 @@
 ### Local Testing 결과
 
 - results/01_sample.png: 초기 Sample CRUD 테스트
+
+![01_sample](results/01_sample.png)
+
 - results/02_dto_created.png: DTO 적용 후 POST 성공 (201)
+
+![02_dto_created](results/02_dto_created.png)
+
 - results/03_validation.png: 잘못된 입력 요청 (400)
+
+![03_validation](results/03_validation.png)
+
 - results/04_not_found.png: 존재하지 않는 ID (404)
+
+![04_not_found](results/04_not_found.png)
+
 - results/05_pagination.png: 페이지/정렬 적용 결과
+
+![05_pagination](results/05_pagination.png)
+
 - results/06_swagger.png: Swagger UI / API 테스트 화면
+
+![06_swagger](results/06_swagger.png)
 
 ### Render 배포
 
@@ -199,7 +216,15 @@
 
 ### 배포 중 발생한 문제와 조치
 
-- 배포 후 실제 오류 로그, 원인, 조치를 기록
+- 문제 1: POST /api/books만 500 Internal Server Error
+  - 증상: 배포 후 GET /api/books(200), 404, 400 응답은 정상인데 POST만 500 발생
+  - 원인: 외부 DB(walab.handong.edu, W26_22300404)에 9주차 과제의 books 테이블이 남아 있었고, 그 테이블에 category varchar(50) NOT NULL 컬럼이 있음. 12주차 Book 엔티티에는 category가 없어 INSERT 시 MariaDB 오류 `Field 'category' doesn't have a default value` (SQL Error 1364) 발생. DDL_AUTO=update는 없는 컬럼만 추가하고 기존 컬럼은 지우지 않아 그대로 남음
+  - 확인: SHOW CREATE TABLE books로 category 컬럼 확인(데이터 0건), 같은 구조의 테이블을 로컬 MariaDB에 만들어 같은 500과 오류 메시지 재현
+  - 조치: ALTER TABLE books DROP COLUMN category; 실행 후 재배포 없이 POST 201, GET/PUT 200, DELETE 204 확인, DB에서도 생성/수정/삭제 반영 확인
+- 문제 2: 배포된 서버의 오류 응답 형식이 README와 다름
+  - 증상: 404 응답이 {"code":"BOOK_NOT_FOUND","message":"Book not found: 99999"}로 나오고, 목록 응답에 pageable 등 예전 필드가 포함됨
+  - 원인: 예외 처리 패키지 정리와 VIA_DTO 설정을 커밋하지 않은 상태에서 배포되어 이전 커밋이 배포됨
+  - 조치: 변경 사항을 커밋하고 push한 뒤 Render 자동 재배포로 반영, 404 응답이 timestamp, httpStatus, code, message 형식으로 바뀐 것 확인
 
 ## 7. Weekly Review
 
