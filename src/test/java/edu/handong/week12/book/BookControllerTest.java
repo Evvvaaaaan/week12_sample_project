@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -34,6 +35,7 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Clean Code\",\"author\":\"Martin\",\"price\":35000}"))
                 .andExpect(status().isCreated())
+                .andExpect(header().string("Location", matchesPattern("http://localhost/api/books/\\d+")))
                 .andExpect(jsonPath("$.id", notNullValue()))
                 .andExpect(jsonPath("$.title").value("Clean Code"))
                 .andExpect(jsonPath("$.author").value("Martin"))
@@ -110,7 +112,9 @@ class BookControllerTest {
         mockMvc.perform(get("/api/books/99999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("BOOK_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("Book not found: 99999"));
+                .andExpect(jsonPath("$.httpStatus").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("책이 존재하지 않습니다."))
+                .andExpect(jsonPath("$.timestamp", notNullValue()));
 
         mockMvc.perform(put("/api/books/99999")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -134,15 +138,27 @@ class BookControllerTest {
                 .andExpect(jsonPath("$.content.length()").value(5))
                 .andExpect(jsonPath("$.content[0].price").value(7000))
                 .andExpect(jsonPath("$.content[4].price").value(3000))
-                .andExpect(jsonPath("$.totalElements").value(7))
-                .andExpect(jsonPath("$.totalPages").value(2))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(5));
+                .andExpect(jsonPath("$.page.totalElements").value(7))
+                .andExpect(jsonPath("$.page.totalPages").value(2))
+                .andExpect(jsonPath("$.page.number").value(0))
+                .andExpect(jsonPath("$.page.size").value(5))
+                .andExpect(jsonPath("$.pageable").doesNotExist());
 
         mockMvc.perform(get("/api/books?page=1&size=5&sort=price,desc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.content[0].price").value(2000));
+    }
+
+    @Test
+    void invalidPathVariableAndSortFieldReturn400() throws Exception {
+        mockMvc.perform(get("/api/books/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_PARAMETER"));
+
+        mockMvc.perform(get("/api/books?sort=foo,desc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_PARAMETER"));
     }
 
     @Test

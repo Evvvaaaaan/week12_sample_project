@@ -6,7 +6,7 @@ public record BookResponse(
         String author,
         int price
 ) {
-    public static BookResponse from(Book book) {
+    public static BookResponse of(Book book) {
         return new BookResponse(book.getId(), book.getTitle(), book.getAuthor(), book.getPrice());
     }
 }
